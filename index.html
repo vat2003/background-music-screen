@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Retro YouTube Radio</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: #f7e7c6;
+      background:
+        radial-gradient(circle at top, #60442c 0, #1c120c 45%, #090605 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(1100px, 100%);
+    }
+
+    .radio {
+      background:
+        linear-gradient(145deg, #8a522d, #3a1d10 45%, #1d0e08);
+      border-radius: 42px;
+      padding: 28px;
+      box-shadow:
+        0 35px 90px rgba(0, 0, 0, 0.65),
+        inset 0 2px 8px rgba(255, 255, 255, 0.18),
+        inset 0 -12px 32px rgba(0, 0, 0, 0.35);
+      border: 5px solid rgba(255, 210, 150, 0.18);
+    }
+
+    .brand {
+      text-align: center;
+      letter-spacing: 4px;
+      font-weight: 800;
+      font-size: 15px;
+      margin-bottom: 20px;
+      color: #ffd28a;
+      text-transform: uppercase;
+    }
+
+    .radio-body {
+      display: grid;
+      grid-template-columns: 1fr minmax(260px, 520px) 1fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .speaker {
+      min-height: 310px;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle, rgba(255, 208, 120, 0.08) 0 3px, transparent 4px),
+        repeating-linear-gradient(
+          90deg,
+          #111 0 7px,
+          #2a2a2a 7px 12px
+        );
+      background-size: 20px 20px, auto;
+      box-shadow:
+        inset 0 0 35px rgba(0, 0, 0, 0.8),
+        0 6px 12px rgba(255, 255, 255, 0.08);
+      border: 8px solid rgba(0, 0, 0, 0.35);
+    }
+
+    .center-panel {
+      background: #140d09;
+      border-radius: 28px;
+      padding: 16px;
+      box-shadow:
+        inset 0 0 28px rgba(0, 0, 0, 0.8),
+        0 10px 18px rgba(0, 0, 0, 0.25);
+      border: 2px solid rgba(255, 218, 160, 0.12);
+    }
+
+    .screen {
+      background:
+        linear-gradient(180deg, #101c16, #06100c);
+      border-radius: 20px;
+      padding: 12px;
+      box-shadow:
+        inset 0 0 26px rgba(0, 255, 130, 0.16),
+        inset 0 0 4px rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(152, 255, 180, 0.18);
+    }
+
+    .player-wrap {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    #player {
+      width: 100%;
+      height: 100%;
+    }
+
+    .display-text {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.35);
+      font-family: "Courier New", monospace;
+      min-height: 76px;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #9dffbc;
+    }
+
+    .status-light {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #3b3b3b;
+      box-shadow: 0 0 0 transparent;
+    }
+
+    .dot.on {
+      background: #52ff7a;
+      box-shadow: 0 0 12px #52ff7a;
+    }
+
+    .track-title {
+      color: #f3ffd6;
+      font-size: 15px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .controls {
+      margin-top: 22px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 12px 17px;
+      color: #1f1208;
+      background: linear-gradient(180deg, #ffe0a5, #b87935);
+      font-weight: 800;
+      box-shadow:
+        0 6px 0 #4c2c15,
+        0 12px 18px rgba(0, 0, 0, 0.4);
+      transition: 0.08s ease;
+      user-select: none;
+    }
+
+    button:hover {
+      filter: brightness(1.07);
+    }
+
+    button:active {
+      transform: translateY(4px);
+      box-shadow:
+        0 2px 0 #4c2c15,
+        0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    button.secondary {
+      background: linear-gradient(180deg, #dadada, #777);
+      color: #111;
+    }
+
+    button.danger {
+      background: linear-gradient(180deg, #ffb2a2, #c33b2e);
+      color: #220705;
+    }
+
+    .volume-box {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: 88px 1fr 45px;
+      gap: 12px;
+      align-items: center;
+      color: #ffdd9b;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #ffbf58;
+    }
+
+    .add-box {
+      margin-top: 24px;
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 24px;
+      padding: 18px;
+      border: 1px solid rgba(255, 220, 170, 0.14);
+    }
+
+    .add-form {
+      display: grid;
+      grid-template-columns: 1fr 180px auto;
+      gap: 10px;
+    }
+
+    input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      border-radius: 999px;
+      padding: 13px 16px;
+      background: #fff2d1;
+      color: #201006;
+      font-size: 14px;
+    }
+
+    .playlist {
+      margin-top: 18px;
+      max-height: 320px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .playlist-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .playlist-item.active {
+      background: rgba(100, 255, 145, 0.16);
+      border-color: rgba(100, 255, 145, 0.38);
+    }
+
+    .mini-btn {
+      padding: 9px 12px;
+      font-size: 12px;
+      box-shadow:
+        0 4px 0 #4c2c15,
+        0 8px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    .song-main {
+      min-width: 0;
+    }
+
+    .song-title {
+      font-weight: 800;
+      color: #fff2cf;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .song-meta {
+      margin-top: 4px;
+      color: rgba(255, 238, 205, 0.68);
+      font-size: 12px;
+      font-family: "Courier New", monospace;
+    }
+
+    .empty {
+      text-align: center;
+      color: rgba(255, 235, 200, 0.72);
+      padding: 22px;
+      border: 1px dashed rgba(255, 235, 200, 0.25);
+      border-radius: 18px;
+    }
+
+    .hint {
+      margin-top: 12px;
+      color: rgba(255, 235, 200, 0.72);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+      .radio-body {
+        grid-template-columns: 1fr;
+      }
+
+      .speaker {
+        min-height: 90px;
+      }
+
+      .add-form {
+        grid-template-columns: 1fr;
+      }
+
+      .volume-box {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="radio">
+      <div class="brand">Daily Retro YouTube Radio</div>
+
+      <div class="radio-body">
+        <div class="speaker"></div>
+
+        <div class="center-panel">
+          <div class="screen">
+            <div class="player-wrap">
+              <div id="player"></div>
+            </div>
+
+            <div class="display-text">
+              <div class="status-row">
+                <span class="status-light">
+                  <span id="statusDot" class="dot"></span>
+                  <span id="statusText">READY</span>
+                </span>
+                <span id="counterText">0 tracks</span>
+              </div>
+              <div id="nowPlaying" class="track-title">Paste a YouTube link to build your own radio playlist.</div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button id="powerBtn">Power</button>
+            <button id="prevBtn">Prev</button>
+            <button id="playBtn">Play</button>
+            <button id="nextBtn">Next</button>
+            <button id="shuffleBtn" class="secondary">Shuffle: Off</button>
+            <button id="repeatBtn" class="secondary">Repeat: All</button>
+          </div>
+
+          <div class="volume-box">
+            <span>Volume</span>
+            <input id="volumeSlider" type="range" min="0" max="100" value="70" />
+            <span id="volumeText">70%</span>
+          </div>
+        </div>
+
+        <div class="speaker"></div>
+      </div>
+
+      <div class="add-box">
+        <form id="addForm" class="add-form">
+          <input id="youtubeUrl" type="text" placeholder="Paste YouTube link here..." autocomplete="off" />
+          <input id="customTitle" type="text" placeholder="Optional title..." autocomplete="off" />
+          <button type="submit">Add</button>
+        </form>
+
+        <div class="hint">
+          Supports youtube.com/watch, youtu.be, /embed, /shorts, and /live links.
+          Playlist is saved in this browser using localStorage.
+        </div>
+
+        <div id="playlist" class="playlist"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <script>
+    const STORAGE_KEY = "retro_youtube_radio_playlist_v1";
+    const INDEX_KEY = "retro_youtube_radio_current_index_v1";
+
+    const addForm = document.getElementById("addForm");
+    const youtubeUrlInput = document.getElementById("youtubeUrl");
+    const customTitleInput = document.getElementById("customTitle");
+    const playlistEl = document.getElementById("playlist");
+
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const counterText = document.getElementById("counterText");
+    const nowPlaying = document.getElementById("nowPlaying");
+
+    const powerBtn = document.getElementById("powerBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const playBtn = document.getElementById("playBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const repeatBtn = document.getElementById("repeatBtn");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const volumeText = document.getElementById("volumeText");
+
+    let player = null;
+    let isPlayerReady = false;
+    let isPoweredOn = true;
+    let isShuffle = false;
+    let repeatMode = "all"; // off | all | one
+
+    let playlist = loadPlaylist();
+    let currentIndex = Number(localStorage.getItem(INDEX_KEY) || 0);
+
+    if (currentIndex < 0 || currentIndex >= playlist.length) {
+      currentIndex = 0;
+    }
+
+    const PAGE_ORIGIN =
+        location.protocol === "http:" || location.protocol === "https:"
+            ? location.origin
+            : "";
+
+        window.onYouTubeIframeAPIReady = function () {
+        player = new YT.Player("player", {
+            videoId: playlist[currentIndex]?.videoId || "",
+            host: "https://www.youtube.com",
+            playerVars: {
+            playsinline: 1,
+            controls: 1,
+            rel: 0,
+            origin: PAGE_ORIGIN
+            },
+            events: {
+            onReady: onPlayerReady,
+            onStateChange: onPlayerStateChange
+            }
+        });
+        };
+
+    function onPlayerReady() {
+      isPlayerReady = true;
+      player.setVolume(Number(volumeSlider.value));
+
+      if (playlist.length > 0) {
+        cueTrack(currentIndex);
+        setStatus("READY");
+      } else {
+        setStatus("EMPTY");
+      }
+
+      renderPlaylist();
+      updateNowPlaying();
+    }
+
+    function onPlayerStateChange(event) {
+      if (!isPoweredOn) return;
+
+      if (event.data === YT.PlayerState.PLAYING) {
+        setStatus("PLAYING");
+        saveVideoTitleFromPlayer();
+        playBtn.textContent = "Pause";
+      }
+
+      if (event.data === YT.PlayerState.PAUSED) {
+        setStatus("PAUSED");
+        playBtn.textContent = "Play";
+      }
+
+      if (event.data === YT.PlayerState.BUFFERING) {
+        setStatus("TUNING");
+      }
+
+      if (event.data === YT.PlayerState.CUED) {
+        setStatus("READY");
+        playBtn.textContent = "Play";
+      }
+
+      if (event.data === YT.PlayerState.ENDED) {
+        playBtn.textContent = "Play";
+
+        if (repeatMode === "one") {
+          playTrack(currentIndex);
+          return;
+        }
+
+        nextTrack(true);
+      }
+    }
+
+    function extractYouTubeId(input) {
+      const raw = input.trim();
+
+      if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) {
+        return raw;
+      }
+
+      try {
+        const url = new URL(raw);
+        const host = url.hostname.replace("www.", "");
+
+        if (host === "youtu.be") {
+          return cleanId(url.pathname.split("/")[1]);
+        }
+
+        if (host.includes("youtube.com")) {
+          const watchId = url.searchParams.get("v");
+          if (watchId) return cleanId(watchId);
+
+          const parts = url.pathname.split("/").filter(Boolean);
+          const knownPaths = ["embed", "shorts", "live"];
+
+          for (const path of knownPaths) {
+            const index = parts.indexOf(path);
+            if (index !== -1 && parts[index + 1]) {
+              return cleanId(parts[index + 1]);
+            }
+          }
+        }
+
+        return null;
+      } catch {
+        return null;
+      }
+    }
+
+    function cleanId(id) {
+      if (!id) return null;
+      const cleaned = id.split("?")[0].split("&")[0].trim();
+      return /^[a-zA-Z0-9_-]{11}$/.test(cleaned) ? cleaned : null;
+    }
+
+    function addTrack(url, customTitle) {
+      const videoId = extractYouTubeId(url);
+
+      if (!videoId) {
+        alert("Invalid YouTube link.");
+        return;
+      }
+
+      const exists = playlist.some(track => track.videoId === videoId);
+      if (exists) {
+        alert("This video is already in your radio playlist.");
+        return;
+      }
+
+      const track = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        videoId,
+        url,
+        title: customTitle.trim() || "YouTube Track " + videoId,
+        addedAt: Date.now(),
+        playCount: 0
+      };
+
+      playlist.push(track);
+      savePlaylist();
+
+      if (playlist.length === 1) {
+        currentIndex = 0;
+        saveCurrentIndex();
+        cueTrack(0);
+      }
+
+      renderPlaylist();
+      updateNowPlaying();
+      setStatus("ADDED");
+    }
+
+    function playTrack(index) {
+      if (!isPlayerReady || !isPoweredOn || !playlist[index]) return;
+
+      currentIndex = index;
+      playlist[currentIndex].playCount += 1;
+
+      saveCurrentIndex();
+      savePlaylist();
+      renderPlaylist();
+      updateNowPlaying();
+
+      player.loadVideoById(playlist[currentIndex].videoId);
+      setStatus("TUNING");
+    }
+
+    function cueTrack(index) {
+      if (!isPlayerReady || !playlist[index]) return;
+
+      currentIndex = index;
+      saveCurrentIndex();
+      renderPlaylist();
+      updateNowPlaying();
+
+      player.cueVideoById(playlist[currentIndex].videoId);
+    }
+
+    function togglePlay() {
+      if (!isPlayerReady || !isPoweredOn) return;
+
+      if (playlist.length === 0) {
+        setStatus("EMPTY");
+        return;
+      }
+
+      const state = player.getPlayerState();
+
+      if (state === YT.PlayerState.PLAYING) {
+        player.pauseVideo();
+      } else {
+        if (state === YT.PlayerState.UNSTARTED || state === YT.PlayerState.CUED || state === -1) {
+          playTrack(currentIndex);
+        } else {
+          player.playVideo();
+        }
+      }
+    }
+
+    function nextTrack(fromEnded = false) {
+      if (playlist.length === 0) return;
+
+      if (playlist.length === 1) {
+        if (fromEnded && repeatMode === "off") {
+          setStatus("FINISHED");
+          return;
+        }
+
+        playTrack(0);
+        return;
+      }
+
+      let nextIndex;
+
+      if (isShuffle) {
+        do {
+          nextIndex = Math.floor(Math.random() * playlist.length);
+        } while (nextIndex === currentIndex);
+      } else {
+        nextIndex = currentIndex + 1;
+      }
+
+      if (nextIndex >= playlist.length) {
+        if (fromEnded && repeatMode === "off") {
+          setStatus("FINISHED");
+          return;
+        }
+
+        nextIndex = 0;
+      }
+
+      playTrack(nextIndex);
+    }
+
+    function prevTrack() {
+      if (playlist.length === 0) return;
+
+      let prevIndex = currentIndex - 1;
+
+      if (prevIndex < 0) {
+        prevIndex = playlist.length - 1;
+      }
+
+      playTrack(prevIndex);
+    }
+
+    function removeTrack(index) {
+      const removingCurrent = index === currentIndex;
+
+      playlist.splice(index, 1);
+
+      if (currentIndex >= playlist.length) {
+        currentIndex = Math.max(0, playlist.length - 1);
+      }
+
+      savePlaylist();
+      saveCurrentIndex();
+      renderPlaylist();
+
+      if (playlist.length === 0) {
+        if (isPlayerReady) player.stopVideo();
+        setStatus("EMPTY");
+        nowPlaying.textContent = "Your radio playlist is empty.";
+        return;
+      }
+
+      if (removingCurrent) {
+        cueTrack(currentIndex);
+      } else {
+        updateNowPlaying();
+      }
+    }
+
+    function saveVideoTitleFromPlayer() {
+      if (!player || !playlist[currentIndex]) return;
+
+      const data = player.getVideoData();
+      const title = data && data.title ? data.title.trim() : "";
+
+      if (title && title !== playlist[currentIndex].title) {
+        playlist[currentIndex].title = title;
+        savePlaylist();
+        renderPlaylist();
+        updateNowPlaying();
+      }
+    }
+
+    function cycleRepeatMode() {
+      if (repeatMode === "all") {
+        repeatMode = "one";
+      } else if (repeatMode === "one") {
+        repeatMode = "off";
+      } else {
+        repeatMode = "all";
+      }
+
+      repeatBtn.textContent = "Repeat: " + capitalize(repeatMode);
+    }
+
+    function togglePower() {
+      isPoweredOn = !isPoweredOn;
+
+      if (!isPoweredOn) {
+        if (isPlayerReady) player.stopVideo();
+        setStatus("OFF");
+        playBtn.textContent = "Play";
+        powerBtn.textContent = "Power On";
+        return;
+      }
+
+      powerBtn.textContent = "Power";
+      setStatus("READY");
+
+      if (playlist.length > 0) {
+        cueTrack(currentIndex);
+      }
+    }
+
+    function setStatus(text) {
+      statusText.textContent = text;
+      statusDot.classList.toggle("on", ["READY", "PLAYING", "TUNING", "ADDED", "PAUSED"].includes(text));
+    }
+
+    function updateNowPlaying() {
+      counterText.textContent = playlist.length + (playlist.length === 1 ? " track" : " tracks");
+
+      if (playlist.length === 0) {
+        nowPlaying.textContent = "Paste a YouTube link to build your own radio playlist.";
+        return;
+      }
+
+      const track = playlist[currentIndex];
+      nowPlaying.textContent = "Now: " + track.title;
+    }
+
+    function renderPlaylist() {
+      playlistEl.innerHTML = "";
+
+      updateNowPlaying();
+
+      if (playlist.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No tracks yet. Add your first YouTube link.";
+        playlistEl.appendChild(empty);
+        return;
+      }
+
+      playlist.forEach((track, index) => {
+        const item = document.createElement("div");
+        item.className = "playlist-item" + (index === currentIndex ? " active" : "");
+
+        const playButton = document.createElement("button");
+        playButton.className = "mini-btn";
+        playButton.textContent = index === currentIndex ? "Tune" : "Play";
+        playButton.addEventListener("click", () => playTrack(index));
+
+        const main = document.createElement("div");
+        main.className = "song-main";
+
+        const title = document.createElement("div");
+        title.className = "song-title";
+        title.textContent = track.title;
+
+        const meta = document.createElement("div");
+        meta.className = "song-meta";
+        meta.textContent = "ID: " + track.videoId + " | Plays: " + track.playCount;
+
+        main.appendChild(title);
+        main.appendChild(meta);
+
+        const removeButton = document.createElement("button");
+        removeButton.className = "mini-btn danger";
+        removeButton.textContent = "Remove";
+        removeButton.addEventListener("click", () => removeTrack(index));
+
+        item.appendChild(playButton);
+        item.appendChild(main);
+        item.appendChild(removeButton);
+
+        playlistEl.appendChild(item);
+      });
+    }
+
+    function loadPlaylist() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function savePlaylist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
+    }
+
+    function saveCurrentIndex() {
+      localStorage.setItem(INDEX_KEY, String(currentIndex));
+    }
+
+    function capitalize(text) {
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    addForm.addEventListener("submit", event => {
+      event.preventDefault();
+
+      addTrack(youtubeUrlInput.value, customTitleInput.value);
+
+      youtubeUrlInput.value = "";
+      customTitleInput.value = "";
+      youtubeUrlInput.focus();
+    });
+
+    playBtn.addEventListener("click", togglePlay);
+    nextBtn.addEventListener("click", () => nextTrack(false));
+    prevBtn.addEventListener("click", prevTrack);
+    powerBtn.addEventListener("click", togglePower);
+
+    shuffleBtn.addEventListener("click", () => {
+      isShuffle = !isShuffle;
+      shuffleBtn.textContent = "Shuffle: " + (isShuffle ? "On" : "Off");
+    });
+
+    repeatBtn.addEventListener("click", cycleRepeatMode);
+
+    volumeSlider.addEventListener("input", () => {
+      const volume = Number(volumeSlider.value);
+      volumeText.textContent = volume + "%";
+
+      if (isPlayerReady) {
+        player.setVolume(volume);
+      }
+    });
+
+    renderPlaylist();
+  </script>
+</body>
+</html>
